@@ -44,7 +44,7 @@ python train_combined.py
 # Option C — skip training; the app falls back to a calibrated rule-based engine
 
 python app.py
-# Open http://127.0.0.1:5000
+# Open http://127.0.0.1:5005
 ```
 
 ## Optional — Ollama chatbot
