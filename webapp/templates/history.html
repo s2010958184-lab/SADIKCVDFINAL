@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Your assessment history · HeartGuard{% endblock %}
+{% block content %}
+
+<section class="result-grid">
+  <div class="card history-card">
+    <h2>Your assessment history</h2>
+    <p class="muted">All assessments tied to this browser session. Stored locally in <code>data/history.db</code>.</p>
+
+    {% if not rows %}
+      <p class="history-empty">No assessments yet. <a href="{{ url_for('assess') }}">Take your first one →</a></p>
+    {% else %}
+      {# ------- Sparkline of CVD probability over time ------- #}
+      <div class="spark">
+        <svg viewBox="0 0 600 120" preserveAspectRatio="none" aria-hidden="true">
+          {% if spark_points|length > 1 %}
+            {% set pts = [] %}
+            {% for p in spark_points %}
+              {% set x = (p.x * 580) + 10 %}
+              {% set y = 110 - (p.y * 100) %}
+              {% set _ = pts.append("%.1f,%.1f"|format(x, y)) %}
+            {% endfor %}
+            {% set fill_pts = "10,110 " ~ pts|join(' ') ~ " 590,110" %}
+            <polygon class="spark-fill" points="{{ fill_pts }}"></polygon>
+            <polyline class="spark-line" points="{{ pts|join(' ') }}"></polyline>
+            {% for p in spark_points %}
+              <circle class="spark-dot"
+                      cx="{{ '%.1f'|format((p.x * 580) + 10) }}"
+                      cy="{{ '%.1f'|format(110 - (p.y * 100)) }}" r="3.5"></circle>
+            {% endfor %}
+          {% else %}
+            <text x="300" y="60" text-anchor="middle" fill="#a6adc6" font-size="13">Need 2+ assessments to draw a trend.</text>
+          {% endif %}
+          <line x1="10" y1="110" x2="590" y2="110" stroke="rgba(255,255,255,0.08)" stroke-width="1"></line>
+        </svg>
+        <p class="muted" style="text-align:center; font-size:12px;">Older ←  CVD probability over time  → Newer</p>
+      </div>
+
+      {# ------- Detailed list ------- #}
+      <div class="history-list">
+        {% for r in rows %}
+        <div class="history-row" style="--i: {{ loop.index }}">
+          <span class="h-date">{{ r.created_at | dt }}</span>
+          <span class="h-prob">{{ "%.1f"|format(r.probability * 100) }}%</span>
+          <span class="h-tier" style="background: {{ r.tier_color }}1a; color: {{ r.tier_color }};">
+            {{ r.tier }}
+          </span>
+          <span class="h-actions">
+            <a href="{{ url_for('download_pdf', assessment_id=r.id) }}" title="Download as PDF">⬇ PDF</a>
+            &nbsp;·&nbsp;
+            <form action="{{ url_for('history_delete', assessment_id=r.id) }}" method="post" style="display:inline">
+              <button class="link-btn" type="submit" title="Delete this assessment"
+                      onclick="return confirm('Delete this assessment?');">✕</button>
+            </form>
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div style="margin-top: 20px;">
+      <a class="cta primary" href="{{ url_for('assess') }}">+ New assessment</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .link-btn { background: none; border: 0; color: var(--text-faded); cursor: pointer; font-size: 12px; padding: 0; }
+  .link-btn:hover { color: var(--brand); }
+</style>
+{% endblock %}

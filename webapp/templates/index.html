@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-left">
+    <span class="kicker">Phase 2 capstone · DSA502</span>
+    <h1>Know your <span class="grad-text">heart risk</span><br>in 90 seconds.</h1>
+    <p class="lede">
+      Answer 11 quick questions. HeartGuard predicts your cardiovascular disease (CVD)
+      risk using a logistic-regression model trained on 70,000 patients, then prescribes
+      a personalised exercise plan, dietary pattern, and daily tips you can actually use.
+    </p>
+    <div class="hero-cta">
+      <a class="cta primary" href="{{ url_for('assess') }}">Start my assessment →</a>
+      <a class="cta ghost" href="#how-it-works">How it works</a>
+    </div>
+
+    <div class="status-row">
+      <div class="status">
+        <span class="dot {{ 'up' if model_meta.available else 'down' }}"></span>
+        Model:
+        {% if model_meta.available %}
+          ready · validation AUC {{ "%.3f"|format(model_meta.auc) }}
+        {% else %}
+          falling back to rule-based engine (no .pkl)
+        {% endif %}
+      </div>
+      <div class="status">
+        <span class="dot {{ 'up' if ollama_up else 'down' }}"></span>
+        Ollama: {{ 'connected' if ollama_up else 'offline (chat disabled)' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="orbit">
+      <div class="orbit-center">🫀</div>
+      <div class="orbit-ring r1"></div>
+      <div class="orbit-ring r2"></div>
+      <div class="orbit-ring r3"></div>
+      <span class="orbit-emoji" style="--a:0">🏃</span>
+      <span class="orbit-emoji" style="--a:60">🥗</span>
+      <span class="orbit-emoji" style="--a:120">🐟</span>
+      <span class="orbit-emoji" style="--a:180">🚴</span>
+      <span class="orbit-emoji" style="--a:240">🧘</span>
+      <span class="orbit-emoji" style="--a:300">🥑</span>
+    </div>
+  </div>
+</section>
+
+<section id="how-it-works" class="strip">
+  <h2>How it works</h2>
+  <div class="cards three">
+    <article class="step">
+      <div class="step-num">1</div>
+      <h3>Answer 11 questions</h3>
+      <p>Age, sex, height, weight, blood pressure, cholesterol, glucose, smoking, alcohol, and physical activity.</p>
+    </article>
+    <article class="step">
+      <div class="step-num">2</div>
+      <h3>See your risk score</h3>
+      <p>An animated gauge maps your CVD probability to one of four risk tiers, with the clinical flags that drove it.</p>
+    </article>
+    <article class="step">
+      <div class="step-num">3</div>
+      <h3>Get a plan & chat with AI</h3>
+      <p>Personalised exercise + diet + tips. Optional Ollama chatbot answers your follow-up questions using the same data.</p>
+    </article>
+  </div>
+</section>
+
+<section class="strip">
+  <h2>What's under the bonnet</h2>
+  <div class="cards four">
+    <div class="mini">
+      <div class="mini-icon">📊</div>
+      <h4>Trained on 70k patients</h4>
+      <p>Kaggle sulianova dataset — the same one used in §8.5 of the notebook.</p>
+    </div>
+    <div class="mini">
+      <div class="mini-icon">🧠</div>
+      <h4>Logistic regression baseline</h4>
+      <p>Stratified 80/20 split, 5-fold CV. AUC ≈ 0.80.</p>
+    </div>
+    <div class="mini">
+      <div class="mini-icon">🔍</div>
+      <h4>TF-IDF retrieval</h4>
+      <p>Top-5 entries from the clinical knowledge base pulled per chat question.</p>
+    </div>
+    <div class="mini">
+      <div class="mini-icon">🤖</div>
+      <h4>Grounded LLM answers</h4>
+      <p>Ollama <code>minimax-m2.1:cloud</code> with a strict no-fabrication system prompt.</p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

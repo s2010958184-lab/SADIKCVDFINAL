@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}HeartGuard — CVD Risk Advisor{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🫀</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">
+      <span class="brand-icon pulse">🫀</span>
+      <span class="brand-text">HeartGuard</span>
+      <span class="brand-sub">CVD Risk Advisor</span>
+    </a>
+    <nav>
+      <a href="{{ url_for('index') }}">Home</a>
+      <a href="{{ url_for('history') }}">History</a>
+      <a href="{{ url_for('assess') }}" class="cta-sm">Start assessment</a>
+    </nav>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <div class="footer-row">
+      <span>Ahmed Al Sadik · B00983817</span>
+      <span>DSA502 — Data Science with AI</span>
+      <span>Built with Flask · scikit-learn · Ollama</span>
+    </div>
+    <p class="disclaimer">
+      Educational tool only. Not a medical device. Always consult a qualified clinician before making changes to your treatment.
+    </p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

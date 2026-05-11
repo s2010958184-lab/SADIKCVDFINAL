@@ -1,0 +1,151 @@
+{# ==============================================================
+   Animated inline-SVG icons.
+   Usage:  {% from "_icons.html" import icon %}
+           {{ icon('running') }}
+   Falls back to the emoji argument if the requested name is unknown.
+   All animations are CSS keyframes defined in static/css/icons.css.
+   ============================================================== #}
+
+{%- macro icon(name, fallback_emoji="•") -%}
+  {%- if name == 'running' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg run" aria-hidden="true">
+      <circle cx="46" cy="14" r="6" fill="currentColor"/>
+      <line class="torso" x1="38" y1="22" x2="44" y2="42" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line class="arm-front" x1="44" y1="28" x2="56" y2="34" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line class="arm-back" x1="38" y1="26" x2="28" y2="32" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line class="leg-front" x1="44" y1="42" x2="56" y2="60" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line class="leg-back" x1="42" y1="42" x2="32" y2="58" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line class="ground" x1="10" y1="70" x2="70" y2="70" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.4"/>
+    </svg>
+  {%- elif name == 'cycling' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg" aria-hidden="true">
+      <circle class="wheel" cx="20" cy="58" r="11" fill="none" stroke="currentColor" stroke-width="3"/>
+      <circle class="wheel" cx="60" cy="58" r="11" fill="none" stroke="currentColor" stroke-width="3"/>
+      <line class="spoke" x1="20" y1="58" x2="20" y2="47" stroke="currentColor" stroke-width="1.5"/>
+      <line class="spoke" x1="60" y1="58" x2="60" y2="47" stroke="currentColor" stroke-width="1.5"/>
+      <polyline points="20,58 38,38 58,38 60,58" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+      <line x1="38" y1="38" x2="44" y2="30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="50" cy="18" r="6" fill="currentColor"/>
+      <line x1="50" y1="24" x2="50" y2="34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  {%- elif name == 'swimming' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg swim" aria-hidden="true">
+      <path d="M5,52 Q15,46 25,52 T45,52 T65,52 T85,52" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.45" class="wave-line"/>
+      <path d="M5,60 Q15,54 25,60 T45,60 T65,60 T85,60" fill="none" stroke="currentColor" stroke-width="2" opacity="0.25" class="wave-line2"/>
+      <ellipse cx="42" cy="42" rx="22" ry="6" fill="currentColor"/>
+      <circle cx="20" cy="38" r="6" fill="currentColor"/>
+      <line class="arm-stroke" x1="20" y1="34" x2="14" y2="22" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  {%- elif name == 'lifting' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg lift" aria-hidden="true">
+      <circle cx="40" cy="20" r="6" fill="currentColor"/>
+      <line x1="40" y1="26" x2="40" y2="46" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line x1="40" y1="46" x2="32" y2="64" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line x1="40" y1="46" x2="48" y2="64" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <g class="barbell">
+        <line x1="22" y1="32" x2="58" y2="32" stroke="currentColor" stroke-width="3"/>
+        <rect x="18" y="26" width="6" height="12" fill="currentColor"/>
+        <rect x="56" y="26" width="6" height="12" fill="currentColor"/>
+        <line x1="40" y1="32" x2="40" y2="42" stroke="currentColor" stroke-width="3"/>
+      </g>
+    </svg>
+  {%- elif name == 'yoga' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg" aria-hidden="true">
+      <circle class="aura" cx="40" cy="40" r="32" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+      <circle class="aura2" cx="40" cy="40" r="24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.25"/>
+      <circle cx="40" cy="22" r="6" fill="currentColor"/>
+      <path d="M28 60 Q40 40 52 60 Z" fill="currentColor"/>
+      <line x1="40" y1="28" x2="40" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <line x1="40" y1="40" x2="28" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <line x1="40" y1="40" x2="52" y2="46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  {%- elif name == 'walking' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg walk" aria-hidden="true">
+      <circle cx="40" cy="14" r="6" fill="currentColor"/>
+      <line x1="40" y1="20" x2="40" y2="44" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line class="walk-arm-l" x1="40" y1="28" x2="32" y2="38" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+      <line class="walk-arm-r" x1="40" y1="28" x2="48" y2="38" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
+      <line class="walk-leg-l" x1="40" y1="44" x2="32" y2="64" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <line class="walk-leg-r" x1="40" y1="44" x2="48" y2="64" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+  {%- elif name == 'heart' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg beat" aria-hidden="true">
+      <path d="M40 64 C 14 48 8 30 22 22 C 30 18 36 22 40 28 C 44 22 50 18 58 22 C 72 30 66 48 40 64 Z"
+            fill="currentColor"/>
+    </svg>
+  {%- elif name == 'pulse' -%}
+    <svg viewBox="0 0 200 80" class="anim-svg pulse-line" aria-hidden="true" preserveAspectRatio="none">
+      <path d="M0 40 L40 40 L48 20 L56 60 L64 30 L72 40 L120 40 L128 20 L136 60 L144 30 L152 40 L200 40"
+            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"
+            stroke-linecap="round" class="pulse-trace"/>
+    </svg>
+  {%- elif name == 'apple' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg sway" aria-hidden="true">
+      <path d="M42 18 Q48 8 56 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M40 22 C 20 22 14 42 22 56 C 28 66 36 66 40 60 C 44 66 52 66 58 56 C 66 42 60 22 40 22 Z"
+            fill="currentColor"/>
+    </svg>
+  {%- elif name == 'fish' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg swim-fish" aria-hidden="true">
+      <path d="M58 40 Q 36 18 14 30 Q 6 40 14 50 Q 36 62 58 40 Z" fill="currentColor"/>
+      <path class="tail" d="M58 40 L72 26 L66 40 L72 54 Z" fill="currentColor"/>
+      <circle cx="22" cy="38" r="2" fill="white"/>
+    </svg>
+  {%- elif name == 'salad' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg spin-slow" aria-hidden="true">
+      <ellipse cx="40" cy="58" rx="32" ry="8" fill="currentColor" opacity="0.6"/>
+      <circle cx="28" cy="46" r="6" fill="currentColor" opacity="0.85"/>
+      <circle cx="40" cy="40" r="7" fill="currentColor"/>
+      <circle cx="52" cy="46" r="6" fill="currentColor" opacity="0.85"/>
+      <circle cx="34" cy="50" r="3.5" fill="currentColor" opacity="0.7"/>
+      <circle cx="48" cy="52" r="3" fill="currentColor" opacity="0.7"/>
+    </svg>
+  {%- elif name == 'avocado' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg float-slow" aria-hidden="true">
+      <path d="M40 12 C 22 16 18 36 22 52 C 26 64 36 70 40 70 C 44 70 54 64 58 52 C 62 36 58 16 40 12 Z" fill="currentColor"/>
+      <circle cx="40" cy="44" r="9" fill="rgba(0,0,0,0.35)"/>
+    </svg>
+  {%- elif name == 'olive-oil' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg drip" aria-hidden="true">
+      <path d="M30 14 L50 14 L48 20 L52 24 L52 56 Q52 64 40 64 Q28 64 28 56 L28 24 L32 20 Z" fill="currentColor"/>
+      <ellipse class="drop" cx="40" cy="72" rx="3" ry="4" fill="currentColor"/>
+    </svg>
+  {%- elif name == 'water' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg drop-anim" aria-hidden="true">
+      <path d="M40 8 C 24 30 18 46 24 58 C 30 68 50 68 56 58 C 62 46 56 30 40 8 Z" fill="currentColor"/>
+    </svg>
+  {%- elif name == 'berry' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg sway" aria-hidden="true">
+      <circle cx="30" cy="42" r="11" fill="currentColor"/>
+      <circle cx="50" cy="42" r="11" fill="currentColor"/>
+      <circle cx="40" cy="56" r="11" fill="currentColor"/>
+      <path d="M35 22 L40 12 L45 22 Z" fill="currentColor" opacity="0.7"/>
+    </svg>
+  {%- elif name == 'milk' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg sway-slow" aria-hidden="true">
+      <path d="M28 18 L52 18 L50 26 L50 64 Q50 70 40 70 Q30 70 30 64 L30 26 Z"
+            fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="M30 50 L30 64 Q30 70 40 70 Q50 70 50 64 L50 50 Z" fill="currentColor" opacity="0.85"/>
+    </svg>
+  {%- elif name == 'grain' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg sway" aria-hidden="true">
+      <line x1="40" y1="14" x2="40" y2="70" stroke="currentColor" stroke-width="2"/>
+      <ellipse cx="34" cy="22" rx="3" ry="6" fill="currentColor" transform="rotate(-25 34 22)"/>
+      <ellipse cx="46" cy="22" rx="3" ry="6" fill="currentColor" transform="rotate(25 46 22)"/>
+      <ellipse cx="32" cy="32" rx="3" ry="6" fill="currentColor" transform="rotate(-25 32 32)"/>
+      <ellipse cx="48" cy="32" rx="3" ry="6" fill="currentColor" transform="rotate(25 48 32)"/>
+      <ellipse cx="30" cy="42" rx="3" ry="6" fill="currentColor" transform="rotate(-25 30 42)"/>
+      <ellipse cx="50" cy="42" rx="3" ry="6" fill="currentColor" transform="rotate(25 50 42)"/>
+      <ellipse cx="34" cy="54" rx="3" ry="5" fill="currentColor" transform="rotate(-25 34 54)"/>
+      <ellipse cx="46" cy="54" rx="3" ry="5" fill="currentColor" transform="rotate(25 46 54)"/>
+    </svg>
+  {%- elif name == 'beans' -%}
+    <svg viewBox="0 0 80 80" class="anim-svg sway" aria-hidden="true">
+      <ellipse cx="28" cy="40" rx="9" ry="14" fill="currentColor" transform="rotate(-30 28 40)"/>
+      <ellipse cx="50" cy="44" rx="9" ry="14" fill="currentColor" transform="rotate(20 50 44)"/>
+      <ellipse cx="40" cy="58" rx="9" ry="14" fill="currentColor" transform="rotate(-10 40 58)"/>
+    </svg>
+  {%- else -%}
+    <span class="emoji-fallback float">{{ fallback_emoji }}</span>
+  {%- endif -%}
+{%- endmacro -%}

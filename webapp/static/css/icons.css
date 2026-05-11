@@ -1,0 +1,120 @@
+/* ===========================================================
+   Animated SVG icon library.
+   Each .anim-svg is a square box; the inner shapes carry
+   keyframe animations that bring them to life.
+   =========================================================== */
+.anim-svg {
+    width: 64px;
+    height: 64px;
+    display: inline-block;
+    color: var(--accent);
+    filter: drop-shadow(0 0 8px rgba(124, 209, 255, 0.35));
+}
+
+.anim-svg.small {
+    width: 36px;
+    height: 36px;
+}
+
+/* ---- Running figure ---- */
+.anim-svg.run .leg-front { transform-origin: 44px 42px; animation: legSwingF 0.55s ease-in-out infinite; }
+.anim-svg.run .leg-back  { transform-origin: 42px 42px; animation: legSwingB 0.55s ease-in-out infinite; }
+.anim-svg.run .arm-front { transform-origin: 44px 28px; animation: armSwingF 0.55s ease-in-out infinite; }
+.anim-svg.run .arm-back  { transform-origin: 38px 26px; animation: armSwingB 0.55s ease-in-out infinite; }
+.anim-svg.run .torso     { animation: bodyBob 0.55s ease-in-out infinite; }
+.anim-svg.run .ground    { animation: dashFlow 0.7s linear infinite; }
+@keyframes legSwingF { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(35deg); } }
+@keyframes legSwingB { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-35deg); } }
+@keyframes armSwingF { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-40deg); } }
+@keyframes armSwingB { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(40deg); } }
+@keyframes bodyBob   { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes dashFlow  { to { stroke-dashoffset: -28; } }
+
+/* ---- Cycling ---- */
+.anim-svg .wheel { transform-origin: center; animation: spinForever 1.2s linear infinite; transform-box: fill-box; }
+.anim-svg .spoke { transform-origin: bottom center; animation: spinForever 1.2s linear infinite; transform-box: fill-box; }
+@keyframes spinForever { to { transform: rotate(360deg); } }
+
+/* ---- Swimming ---- */
+.anim-svg.swim .arm-stroke { transform-origin: 20px 38px; animation: armStroke 0.9s ease-in-out infinite; }
+.anim-svg.swim .wave-line  { animation: waveShift 2.5s linear infinite; }
+.anim-svg.swim .wave-line2 { animation: waveShift 3.5s linear infinite reverse; }
+@keyframes armStroke { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-180deg); } }
+@keyframes waveShift { 0% { transform: translateX(0); } 100% { transform: translateX(-20px); } }
+
+/* ---- Lifting ---- */
+.anim-svg.lift .barbell { transform-origin: 40px 32px; animation: liftReps 1.4s ease-in-out infinite; }
+@keyframes liftReps { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+/* ---- Yoga ---- */
+.anim-svg .aura  { animation: breathe 3s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.anim-svg .aura2 { animation: breathe 3s ease-in-out infinite 0.3s; transform-origin: center; transform-box: fill-box; }
+@keyframes breathe { 0%,100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.15); opacity: 0.1; } }
+
+/* ---- Walking ---- */
+.anim-svg.walk .walk-leg-l { transform-origin: 40px 44px; animation: legSwingF 1.1s ease-in-out infinite; }
+.anim-svg.walk .walk-leg-r { transform-origin: 40px 44px; animation: legSwingB 1.1s ease-in-out infinite; }
+.anim-svg.walk .walk-arm-l { transform-origin: 40px 28px; animation: armSwingF 1.1s ease-in-out infinite; }
+.anim-svg.walk .walk-arm-r { transform-origin: 40px 28px; animation: armSwingB 1.1s ease-in-out infinite; }
+
+/* ---- Heart beat ---- */
+.anim-svg.beat { animation: heartThump 0.9s ease-in-out infinite; }
+@keyframes heartThump {
+    0%, 100% { transform: scale(1); }
+    20%      { transform: scale(1.15); }
+    40%      { transform: scale(0.95); }
+    60%      { transform: scale(1.1); }
+    80%      { transform: scale(1); }
+}
+
+/* ---- Pulse line (ECG trace) ---- */
+.anim-svg.pulse-line { width: 100%; height: 50px; }
+.pulse-trace { stroke-dasharray: 600; stroke-dashoffset: 600; animation: traceEcg 2.2s linear infinite; }
+@keyframes traceEcg { to { stroke-dashoffset: 0; } }
+
+/* ---- Apple / berry sway ---- */
+.anim-svg.sway      { animation: swayRock 2.4s ease-in-out infinite; transform-origin: center bottom; }
+.anim-svg.sway-slow { animation: swayRock 3.6s ease-in-out infinite; transform-origin: center bottom; }
+@keyframes swayRock { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+
+/* ---- Fish ---- */
+.anim-svg.swim-fish { animation: fishGlide 3s ease-in-out infinite; }
+.anim-svg.swim-fish .tail { transform-origin: 58px 40px; animation: tailWag 0.6s ease-in-out infinite; }
+@keyframes fishGlide { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-4px); } }
+@keyframes tailWag   { 0%,100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
+
+/* ---- Salad / spin-slow ---- */
+.anim-svg.spin-slow { animation: spinSlow 8s linear infinite; }
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+
+/* ---- Avocado / floating ---- */
+.anim-svg.float-slow { animation: floatBob 3s ease-in-out infinite; }
+@keyframes floatBob  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* ---- Olive oil drip ---- */
+.anim-svg.drip .drop { animation: dripDrop 2s ease-in infinite; transform-origin: center; }
+@keyframes dripDrop {
+    0% { transform: translateY(0); opacity: 1; }
+    70% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(8px); opacity: 0; }
+}
+
+/* ---- Generic water-drop pulse ---- */
+.anim-svg.drop-anim { animation: dropPulse 2.5s ease-in-out infinite; }
+@keyframes dropPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(124, 209, 255, 0.4)); }
+    50%      { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(124, 209, 255, 0.8)); }
+}
+
+/* ---- Emoji fallback ---- */
+.emoji-fallback {
+    font-size: 2.5rem;
+    display: inline-block;
+    animation: floatBob 3s ease-in-out infinite;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .anim-svg, .anim-svg * { animation: none !important; }
+    .emoji-fallback { animation: none !important; }
+}

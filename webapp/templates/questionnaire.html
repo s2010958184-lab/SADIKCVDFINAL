@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Risk assessment · HeartGuard{% endblock %}
+{% block content %}
+
+<section class="form-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label">Step <span id="stepNum">1</span> of <span id="stepTotal">5</span></div>
+
+  {% if error %}
+  <div class="alert error">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('assess') }}" id="assessForm" novalidate>
+
+    <fieldset class="step-card active" data-step="1">
+      <h2>1 · About you</h2>
+      <label>Age (years)
+        <input type="number" name="age_years" min="18" max="100" step="1" required value="{{ form.age_years if form else '' }}">
+      </label>
+      <label>Sex at birth
+        <select name="gender" required>
+          <option value="" disabled {{ '' if form and form.gender else 'selected' }}>Choose one…</option>
+          <option value="1" {{ 'selected' if form and form.gender == '1' else '' }}>Female</option>
+          <option value="2" {{ 'selected' if form and form.gender == '2' else '' }}>Male</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset class="step-card" data-step="2">
+      <h2>2 · Body measurements</h2>
+      <label>Height (cm)
+        <input type="number" name="height_cm" min="120" max="220" step="1" required value="{{ form.height_cm if form else '' }}">
+      </label>
+      <label>Weight (kg)
+        <input type="number" name="weight_kg" min="35" max="250" step="0.1" required value="{{ form.weight_kg if form else '' }}">
+      </label>
+      <div class="hint" id="bmiHint">BMI will be computed automatically.</div>
+    </fieldset>
+
+    <fieldset class="step-card" data-step="3">
+      <h2>3 · Blood pressure</h2>
+      <p class="muted">If you don't know your exact numbers, use the last reading from your doctor or a home monitor. A typical resting BP is around 120/80 mmHg.</p>
+      <label>Systolic BP — top number (mmHg)
+        <input type="number" name="ap_hi" min="80" max="250" step="1" required value="{{ form.ap_hi if form else '' }}">
+      </label>
+      <label>Diastolic BP — bottom number (mmHg)
+        <input type="number" name="ap_lo" min="40" max="160" step="1" required value="{{ form.ap_lo if form else '' }}">
+      </label>
+    </fieldset>
+
+    <fieldset class="step-card" data-step="4">
+      <h2>4 · Cholesterol & glucose</h2>
+      <p class="muted">If you don't have lab values, choose <em>Normal</em> unless your doctor has told you otherwise.</p>
+      <label>Cholesterol level
+        <select name="cholesterol" required>
+          <option value="" disabled {{ '' if form and form.cholesterol else 'selected' }}>Choose one…</option>
+          <option value="1" {{ 'selected' if form and form.cholesterol == '1' else '' }}>Normal (&lt; 200 mg/dL)</option>
+          <option value="2" {{ 'selected' if form and form.cholesterol == '2' else '' }}>Above normal (200–239 mg/dL)</option>
+          <option value="3" {{ 'selected' if form and form.cholesterol == '3' else '' }}>Well above normal (≥ 240 mg/dL)</option>
+        </select>
+      </label>
+      <label>Glucose level
+        <select name="gluc" required>
+          <option value="" disabled {{ '' if form and form.gluc else 'selected' }}>Choose one…</option>
+          <option value="1" {{ 'selected' if form and form.gluc == '1' else '' }}>Normal (&lt; 100 mg/dL)</option>
+          <option value="2" {{ 'selected' if form and form.gluc == '2' else '' }}>Above normal (100–125 mg/dL)</option>
+          <option value="3" {{ 'selected' if form and form.gluc == '3' else '' }}>Well above normal (≥ 126 mg/dL)</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset class="step-card" data-step="5">
+      <h2>5 · Lifestyle</h2>
+      <div class="toggle-row">
+        <label class="toggle">
+          <input type="checkbox" name="smoke" value="1" {{ 'checked' if form and form.smoke == '1' else '' }}>
+          <span class="toggle-face">🚬<br><b>Smoker</b><small>Currently or in last 6 months</small></span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" name="alco" value="1" {{ 'checked' if form and form.alco == '1' else '' }}>
+          <span class="toggle-face">🍺<br><b>Alcohol</b><small>Regular drinker</small></span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" name="active" value="1" {{ 'checked' if form and form.active == '1' else '' }}>
+          <span class="toggle-face">🏃<br><b>Physically active</b><small>At least 150 min/week</small></span>
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="step-actions">
+      <button type="button" class="cta ghost" id="backBtn" disabled>← Back</button>
+      <button type="button" class="cta primary" id="nextBtn">Next →</button>
+      <button type="submit" class="cta primary hidden" id="submitBtn">See my risk →</button>
+    </div>
+  </form>
+</section>
+
+{% endblock %}
+{% block scripts %}
+<script>initQuestionnaire();</script>
+{% endblock %}

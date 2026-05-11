@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block title %}Your CVD risk · HeartGuard{% endblock %}
+{% block content %}
+
+<section class="result-grid">
+
+  <!-- ============= Risk gauge ============= -->
+  <div class="card gauge-card" style="--tier-color: {{ assessment.tier_color }}">
+    <h2>Your CVD risk</h2>
+    <div class="gauge" id="gauge"
+         data-prob="{{ assessment.probability }}"
+         data-color="{{ assessment.tier_color }}">
+      <svg viewBox="0 0 200 200" width="220" height="220">
+        <circle cx="100" cy="100" r="85" class="gauge-track"></circle>
+        <circle cx="100" cy="100" r="85" class="gauge-fill"
+                style="stroke: {{ assessment.tier_color }};"></circle>
+        <text x="100" y="92" text-anchor="middle" class="gauge-value" id="gaugeValue">0%</text>
+        <text x="100" y="118" text-anchor="middle" class="gauge-label">probability</text>
+      </svg>
+    </div>
+    <div class="tier-badge" style="background: {{ assessment.tier_color }}1a; color: {{ assessment.tier_color }};">
+      <span class="emoji">{{ assessment.tier_emoji }}</span>
+      <strong>{{ assessment.tier }}</strong>
+    </div>
+    <p class="tier-summary">{{ assessment.tier_summary }}</p>
+    <p class="engine-note">
+      Predicted by <b>{{ 'logistic-regression model' if assessment.engine == 'model' else 'rule-based fallback engine' }}</b>.
+      {% if assessment.engine == 'rule' %}
+      <a href="https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset" target="_blank">Download the dataset and run <code>train_model.py</code></a> for higher-accuracy predictions.
+      {% endif %}
+    </p>
+  </div>
+
+  <!-- ============= Patient snapshot ============= -->
+  <div class="card snapshot-card">
+    <h3>Your inputs</h3>
+    <ul class="snapshot">
+      <li><span>Age</span><strong>{{ patient.age_years|int }} yrs</strong></li>
+      <li><span>Sex</span><strong>{{ 'Female' if patient.gender == 1 else 'Male' }}</strong></li>
+      <li><span>BMI</span><strong>{{ bmi }}</strong></li>
+      <li><span>Blood pressure</span><strong>{{ patient.ap_hi|int }}/{{ patient.ap_lo|int }} mmHg</strong></li>
+      <li><span>Cholesterol</span><strong>{{ {1:'Normal',2:'Above',3:'Well above'}[patient.cholesterol] }}</strong></li>
+      <li><span>Glucose</span><strong>{{ {1:'Normal',2:'Above',3:'Well above'}[patient.gluc] }}</strong></li>
+      <li><span>Smoker</span><strong>{{ 'Yes' if patient.smoke else 'No' }}</strong></li>
+      <li><span>Alcohol</span><strong>{{ 'Yes' if patient.alco else 'No' }}</strong></li>
+      <li><span>Active</span><strong>{{ 'Yes' if patient.active else 'No' }}</strong></li>
+    </ul>
+    <div class="action-bar">
+      {% if assessment_id %}
+      <a class="cta primary" href="{{ url_for('download_pdf', assessment_id=assessment_id) }}">⬇ Download PDF</a>
+      {% endif %}
+      <a class="cta ghost" href="{{ url_for('assess') }}">↻ Retake</a>
+      <a class="cta ghost" href="{{ url_for('history') }}">📈 History</a>
+    </div>
+  </div>
+
+  <!-- ============= Flags ============= -->
+  {% if assessment.flags %}
+  <div class="card flags-card">
+    <h3>Clinical flags</h3>
+    <ul class="flag-list">
+      {% for f in assessment.flags %}
+      <li class="flag flag-{{ f.level|lower }}">
+        <span class="flag-tag">{{ f.level }}</span>
+        <span class="flag-msg">{{ f.msg }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- ============= Exercise plan ============= -->
+  <div class="card plan-card exercise-card">
+    <header class="plan-head">
+      <h2><span class="pulse-emoji">🏃</span> Exercise plan</h2>
+      <div class="plan-meta">
+        <span>{{ plan.exercise.frequency }}</span>·
+        <span>{{ plan.exercise.duration }}</span>·
+        <span>{{ plan.exercise.intensity }}</span>
+      </div>
+    </header>
+    <p class="plan-summary">{{ plan.exercise.summary }}</p>
+
+    <div class="exercise-grid">
+      {% for item in plan.exercise.exercises %}
+      <div class="exer-card" style="--i: {{ loop.index }}">
+        <div class="exer-emoji bounce">
+          {% set ic = icon_name(item.emoji) %}
+          {% if ic %}{{ icon(ic, item.emoji) }}{% else %}{{ item.emoji }}{% endif %}
+        </div>
+        <h4>{{ item.name }}</h4>
+        <p>{{ item.detail }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3>7-day schedule</h3>
+    <ol class="week-plan">
+      {% for day, activity in plan.exercise.weekly_plan %}
+      <li><span class="day">{{ day }}</span><span class="activity">{{ activity }}</span></li>
+      {% endfor %}
+    </ol>
+
+    <h3>Safety precautions</h3>
+    <ul class="precautions">
+      {% for p in plan.exercise.precautions %}
+      <li>{{ p }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- ============= Diet plan ============= -->
+  <div class="card plan-card diet-card">
+    <header class="plan-head">
+      <h2><span class="pulse-emoji">🥗</span> Dietary plan</h2>
+      <div class="plan-meta">
+        <span>Framework: {{ plan.diet.framework }}</span>
+      </div>
+    </header>
+    <p class="plan-summary">{{ plan.diet.summary }}</p>
+
+    <div class="food-grid">
+      {% for item in plan.diet.foods %}
+      <div class="food-card" style="--i: {{ loop.index }}">
+        <div class="food-emoji float">
+          {% set ic = icon_name(item.emoji) %}
+          {% if ic %}{{ icon(ic, item.emoji) }}{% else %}{{ item.emoji }}{% endif %}
+        </div>
+        <h4>{{ item.name }}</h4>
+        <p>{{ item.detail }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if plan.diet.meals %}
+    <h3>Sample 1-day meal plan</h3>
+    <div class="meal-plan">
+      {% for m in plan.diet.meals %}
+      <div class="meal-card" style="--i: {{ loop.index }}">
+        <div class="meal-emoji">
+          {% set ic = icon_name(m.emoji) %}
+          {% if ic %}{{ icon(ic, m.emoji) }}{% else %}<span class="emoji-fallback float">{{ m.emoji }}</span>{% endif %}
+        </div>
+        <div class="meal-body">
+          <span class="meal-tag">{{ m.meal }}</span>
+          <h4>{{ m.name }}</h4>
+          <p>{{ m.detail }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <h3>What to avoid</h3>
+    <ul class="avoid-list">
+      {% for a in plan.diet.avoid %}
+      <li>🚫 {{ a }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- ============= Tips carousel ============= -->
+  <div class="card tips-card">
+    <h2><span class="pulse-emoji">💡</span> Daily tips for you</h2>
+    <div class="tip-carousel">
+      {% for t in plan.tips %}
+      <div class="tip-card" style="--i: {{ loop.index }}">
+        <div class="tip-cat">{{ t.category }}</div>
+        <h4>{{ t.tip }}</h4>
+        <p><b>Why:</b> {{ t.why }}</p>
+        <p><b>Action:</b> {{ t.action }}</p>
+        <p class="src">{{ t.source }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ============= Ask AI chat ============= -->
+  <div class="card chat-card" id="chatCard"
+       data-tier="{{ assessment.tier }}"
+       data-summary="{{ summary }}"
+       data-ollama="{{ 'true' if ollama_up else 'false' }}">
+    <h2><span class="pulse-emoji">🤖</span> Ask the AI</h2>
+    {% if ollama_up %}
+    <p class="muted">Ask any follow-up question — the AI grounds its answer in your risk profile and the clinical knowledge base.</p>
+    {% else %}
+    <p class="muted warn">⚠ Ollama is not running. Start it with <code>ollama serve</code> and <code>ollama pull minimax-m2.1:cloud</code> in another terminal, then refresh.</p>
+    {% endif %}
+
+    <form id="chatForm" class="chat-form" {{ '' if ollama_up else 'aria-disabled="true"' }}>
+      <input type="text" id="chatInput" placeholder="e.g. What should I eat tomorrow?" {{ '' if ollama_up else 'disabled' }}>
+      <button class="cta primary" type="submit" {{ '' if ollama_up else 'disabled' }}>Ask →</button>
+    </form>
+
+    <div id="chatStream"></div>
+  </div>
+
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>initResultPage();</script>
+{% endblock %}
