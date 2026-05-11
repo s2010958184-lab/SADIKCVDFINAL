@@ -47,6 +47,10 @@ data_extra/
 *.BACKUP.ipynb
 *.PRETIER1.ipynb
 
+# ---- Presentation artefacts (built locally; not committed to repo) ----
+CVD_Presentation_*.pptx
+CVD_PresentationScript_*.docx
+
 # ---- OS / misc ----
 *.log
 *.pid
