@@ -122,7 +122,7 @@ def _opt_bool(form: dict, name: str) -> int | None:
 
 
 def _parse_questionnaire(form) -> tuple[dict[str, Any] | None, str | None]:
-    """Parse the 18-question form. Every field is optional; we just need ≥7.
+    """Parse the 30-question form. Every field is optional; we need ≥10.
 
     Returns ``(patient_dict, None)`` on success, or ``(None, error_msg)`` on failure.
     Missing core model fields are imputed with population medians and recorded

@@ -27,7 +27,8 @@
     <p class="engine-note">
       Predicted by <b>{{ 'logistic-regression model' if assessment.engine == 'model' else 'rule-based fallback engine' }}</b>.
       {% if assessment.engine == 'rule' %}
-      <a href="https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset" target="_blank">Download the dataset and run <code>train_model.py</code></a> for higher-accuracy predictions.
+      This estimate blends your <strong>11 core vitals</strong> with your <strong>optional questionnaire answers</strong> (waist, heart rate, HDL, medications, diet, sleep, sitting time, family history, prior events, and more) so the score tracks what you actually reported — it is still <em>not</em> a clinical diagnosis.
+      <a href="https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset" target="_blank">Train on data</a> with <code>train_model.py</code> / <code>train_combined.py</code> for a learned model once <code>models/cvd_model.pkl</code> is present.
       {% endif %}
     </p>
   </div>
