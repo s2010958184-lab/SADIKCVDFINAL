@@ -20,43 +20,70 @@ Flask web app that asks the user 11 health questions, predicts their cardiovascu
 
 ---
 
+## Required stack
+
+| Component | Why |
+|---|---|
+| **Flask** | HTTP server + Jinja templates |
+| **pandas** | Loading + harmonising the training datasets |
+| **scikit-learn** | TF-IDF retrieval (RAG) + supervised models (LR / RF / GB / XGB) |
+| **requests** | POST to the Ollama HTTP API |
+| **Ollama runtime** (local) | LLM gateway — <https://ollama.com> |
+| **LLM model `minimax-m2.1:cloud`** | Grounded reasoning model |
+
+The app listens at **`http://127.0.0.1:5005`**.
+
 ## Quick start
 
 ```bash
 cd webapp
 python -m venv .venv
-.venv\Scripts\activate            # Windows
-# source .venv/bin/activate       # macOS/Linux
+.venv\Scripts\activate            # Windows PowerShell
+# source .venv/bin/activate       # macOS / Linux
 pip install -r requirements.txt
 
-# Option A — train on the single Kaggle CSV (place it at data/cardio_train.csv)
+python app.py
+# → open http://127.0.0.1:5005
+```
+
+The app boots immediately with a calibrated **rule-based** scorer, so the UI works end-to-end on day one. When you want the actual ML model from the notebook to drive predictions, train it once:
+
+```bash
+# Option A — single source (Kaggle Sulianova)
+#   place data/cardio_train.csv
 python train_model.py
 
-# Option B — train on the COMBINED dataset (best accuracy)
+# Option B — multi-source (best accuracy, matches notebook §14)
 #   place any of:
 #     data/cardio_train.csv          (Kaggle Sulianova)
-#     data/framingham.csv            (Framingham)
+#     data/framingham.csv            (Framingham Heart Study)
 #     data/LLCP2022.XPT              (BRFSS 2022 SAS XPT)
-#     data/nhanes_2017_2018.csv      (NHANES 2017–18 harmonised CSV)
-#   then run:
+#     data/nhanes_2017_2018.csv      (NHANES 2017–18, harmonised)
 python train_combined.py
-
-# Option C — skip training; the app falls back to a calibrated rule-based engine
-
-python app.py
-# Open http://127.0.0.1:5005
 ```
+
+Either script writes `models/cvd_model.pkl`; restart `python app.py` and the result page header will show `Model: cvd_model.pkl` instead of `Rule-based (fallback)`.
 
 ## Optional — Ollama chatbot
 
-Install Ollama (https://ollama.com), then in a second terminal:
+Install Ollama (<https://ollama.com>), then in a **second terminal**:
 
 ```bash
 ollama pull minimax-m2.1:cloud
-ollama serve
+ollama serve         # exposes http://localhost:11434
 ```
 
-The chat box on the results page becomes active once Ollama is reachable.
+The "Ask the AI" chat box on the results page becomes active once `/health` reports `ollama_available: true`.
+
+## Sanity check
+
+```bash
+curl http://127.0.0.1:5005/health
+# { "ok": true,
+#   "model_available": true|false,
+#   "ollama_available": true|false,
+#   "model": { ... } }
+```
 
 ---
 

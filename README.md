@@ -58,25 +58,107 @@ All Phase 2 loaders have **graceful fallback**: if Kaggle authentication is unav
 
 ## How to run
 
-### Option A — Google Colab (recommended)
+The project has two runnable pieces:
+
+1. **The notebook** — full data-science write-up (Phase 1 + Phase 2 + Tier-1 add-ons).
+2. **The Flask web app** (`webapp/`) — productised demo that lets a user fill in a questionnaire, see an animated risk gauge, get a personalised exercise + diet plan, browse history, download a PDF, and chat with a local Ollama LLM grounded in the project's clinical knowledge base.
+
+### Required runtime stack (web app)
+
+| Component | Why |
+|---|---|
+| **Flask** | HTTP server + Jinja templates |
+| **pandas** | Loading & harmonising the training datasets |
+| **scikit-learn** | TF-IDF + cosine similarity retrieval, plus the supervised LR/RF/GB/XGB models |
+| **requests** | Talking to the Ollama HTTP API |
+| **Ollama runtime** (local) | LLM gateway for the grounded chatbot — <https://ollama.com> |
+| **LLM model `minimax-m2.1:cloud`** | The grounded reasoning model |
+
+The web app is configured to listen at **`http://127.0.0.1:5005`**.
+
+---
+
+### 1) Run the notebook
+
+**Option A — Google Colab (recommended)**
 
 1. Open the notebook in Colab (badge at the top of the notebook).
 2. Optional but recommended: upload your `kaggle.json` API token to enable the Kaggle datasets (Kaggle → Settings → API → Create New Token).
 3. `Runtime → Run all`.
 
-### Option B — Local
+**Option B — Local**
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate           # Windows
-# source .venv/bin/activate      # macOS/Linux
+.venv\Scripts\activate           # Windows PowerShell
+# source .venv/bin/activate      # macOS / Linux
 pip install -r requirements.txt
 jupyter notebook CVDPHASE1_AhmedAlSadik_B00983817.ipynb
 ```
 
-For Kaggle datasets locally, place your `kaggle.json` at `%USERPROFILE%\.kaggle\kaggle.json` (Windows) or `~/.kaggle/kaggle.json` (macOS/Linux) before running the §11 cells.
+For Kaggle datasets locally, place your `kaggle.json` at `%USERPROFILE%\.kaggle\kaggle.json` (Windows) or `~/.kaggle/kaggle.json` (macOS/Linux) before running the §11 cells. NHANES, UCI Heart Disease, and Z-Alizadeh download from public no-auth URLs (NCHS, UCI ML Repository).
 
-NHANES, UCI Heart Disease, and Z-Alizadeh download from public no-auth URLs (NCHS, UCI ML Repository).
+---
+
+### 2) Run the Flask web app at `http://127.0.0.1:5005`
+
+```bash
+cd webapp
+python -m venv .venv
+.venv\Scripts\activate           # Windows PowerShell
+# source .venv/bin/activate      # macOS / Linux
+pip install -r requirements.txt
+python app.py
+# → open http://127.0.0.1:5005
+```
+
+That alone is enough to use the app — when no trained `.pkl` exists yet, predictions fall back to a calibrated rule-based engine so the UI still works end-to-end.
+
+**Optional — train the supervised model first** (replaces the rule-based fallback with the model from your notebook):
+
+```bash
+# (A) Single-source — trains on the Kaggle Sulianova CSV
+#     place the CSV at: webapp/data/cardio_train.csv
+python train_model.py
+
+# (B) Multi-source — trains on Kaggle + Framingham + BRFSS + NHANES
+#     place any of these you have in webapp/data/:
+#       cardio_train.csv          (Kaggle Sulianova)
+#       framingham.csv            (Framingham Heart Study)
+#       LLCP2022.XPT              (BRFSS 2022 SAS XPT)
+#       nhanes_2017_2018.csv      (NHANES 2017–18, harmonised)
+python train_combined.py
+```
+
+Either script writes `webapp/models/cvd_model.pkl`, which `app.py` picks up automatically the next time it boots.
+
+**Optional — enable the Ollama-grounded chat box** on the results page:
+
+```bash
+# in a separate terminal, keep running while the Flask app is up
+ollama pull minimax-m2.1:cloud
+ollama serve         # exposes http://localhost:11434
+```
+
+Verify the wiring at any time with:
+
+```bash
+curl http://127.0.0.1:5005/health
+# → { "ok": true, "model_available": ..., "ollama_available": ... }
+```
+
+The chat box becomes active as soon as `ollama_available` is `true`.
+
+---
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `Address already in use` on port 5005 | Another process is bound to 5005. Stop it or set `PORT=5006 python app.py` and open `127.0.0.1:5006`. |
+| `model_available: false` | No `webapp/models/cvd_model.pkl` yet — either run `train_model.py` / `train_combined.py`, or just use the rule-based fallback. |
+| `ollama_available: false` | The Ollama daemon isn't running on this machine. `ollama serve` in another terminal, and confirm `ollama list` shows `minimax-m2.1:cloud`. |
+| `kaggle: command not found` (notebook) | Drop your `kaggle.json` into `~/.kaggle/` and run `pip install kaggle`, **or** simply skip the §11 Kaggle cell — every Phase 2 loader degrades gracefully and prints `[skip]`. |
 
 ---
 
