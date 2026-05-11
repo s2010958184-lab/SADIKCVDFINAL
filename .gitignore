@@ -1,0 +1,54 @@
+# ============================================================
+#  Cardiovascular Disease Risk Prediction & Prevention
+#  .gitignore
+# ============================================================
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---- Virtual environments ----
+.venv/
+venv/
+env/
+ENV/
+
+# ---- IDE / editor ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+*.bak.ipynb
+
+# ---- Web app runtime artefacts ----
+webapp/data/history.db
+webapp/data/*.db
+webapp/data/*.db-journal
+webapp/models/*.pkl
+webapp/models/*.joblib
+
+# Cached datasets — too large for git, fetched on first run
+webapp/data/cardio_train.csv
+webapp/data/framingham.csv
+webapp/data/LLCP2022.XPT
+webapp/data/nhanes_2017_2018.csv
+data_extra/
+
+# ---- Notebook history backups (kept locally, not in repo) ----
+*.BACKUP.ipynb
+*.PRETIER1.ipynb
+
+# ---- OS / misc ----
+*.log
+*.pid
+.env
+.env.local
