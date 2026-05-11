@@ -1,8 +1,8 @@
 # HeartGuard — CVD Risk Web App
 
-Flask web app that asks the user 11 health questions, predicts their cardiovascular disease (CVD) risk, then shows a personalised exercise plan, dietary plan, daily tips, and clinical flags — with an optional Ollama-powered chatbot, history tracking, PDF download, and animated SVG iconography for every food and exercise.
+> Built by **Ahmed Al Sadik** · B00983817 — productisation layer for the DSA502 final project.
 
-**Student:** Ahmed Al Sadik · **Banner ID:** B00983817
+Flask web app that asks the user 11 health questions, predicts their cardiovascular disease (CVD) risk, then shows a personalised exercise plan, dietary plan, daily tips, and clinical flags — with an optional Ollama-powered chatbot, history tracking, PDF download, and animated SVG iconography for every food and exercise.
 
 ---
 

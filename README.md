@@ -1,11 +1,15 @@
-# DSA502 — Cardiovascular Disease Risk Prediction & Prevention
+# Cardiovascular Disease Risk Prediction & Prevention
 
-**Student:** Ahmed Al Sadik
-**Banner ID:** B00983817
-**Course:** Data Science with AI — DSA502
-**Phase:** Phase 1 + Phase 2 (Multi-source training, full responsible-AI suite, productised web app)
+> A complete two-phase data-science project — multi-source modelling, full responsible-AI suite, and a productised Flask web application.
 
-This project predicts cardiovascular disease (CVD) risk and prescribes personalised, risk-tiered exercise plans, daily wellness tips, and a flag-based prevention advisor — driven by a model trained on a 70,000-patient Kaggle clinical dataset (Phase 1) and on **~480,000 rows pooled from 5 hand-picked public CVD cohorts** (Phase 2).
+**By Ahmed Al Sadik** · B00983817
+Data Science with AI (DSA502) · Final submission (Phase 1 + Phase 2)
+
+---
+
+### What this project does
+
+Predicts cardiovascular disease (CVD) risk and prescribes personalised, risk-tiered exercise plans, daily wellness tips, and a flag-based prevention advisor — driven by a model trained on a 70,000-patient Kaggle clinical dataset (Phase 1) and on **~480,000 rows pooled from 5 hand-picked public CVD cohorts** (Phase 2). The trained model is wrapped in **HeartGuard**, a Flask + Ollama-RAG web app with animated SVG plans, assessment history, and PDF export.
 
 ---
 
@@ -133,7 +137,7 @@ See §6.2 of the notebook for the running AI usage log. AI tools were used for b
 
 | Rubric area | Where in this project |
 |---|---|
-| GitHub repo + commit history | `https://github.com/s2010958184-lab/SADIKCVDFINAL.git` |
+| GitHub repo + commit history | `https://github.com/s2010958184-lab/SADIKDSA502CVD.git` |
 | Problem framing | §6.1, §9.1 |
 | Data card | §6.3 |
 | EDA (≥ 3 plots, ≥ 2 insights, leakage check) | §8.4 (7 plots, 7 insights, leakage audit) |
