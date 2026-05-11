@@ -20,22 +20,15 @@ Predicts cardiovascular disease (CVD) risk and prescribes personalised, risk-tie
 ├── CVDPHASE1_AhmedAlSadik_B00983817.ipynb   # main notebook (Phase 1 + Phase 2 §11–§22)
 ├── README.md
 ├── requirements.txt
-├── webapp/                                   # CVD HeartGuard — Flask + Ollama RAG (port 5005)
+├── webapp/                                   # productised Flask + Ollama RAG demo
 │   ├── app.py, model.py, train_model.py
 │   ├── train_combined.py                     # multi-source training (Kaggle+Framingham+BRFSS+NHANES)
 │   ├── db.py, pdf_report.py
 │   ├── knowledge.py, retriever.py, ollama_client.py
 │   ├── templates/    (incl. animated SVG macro)
 │   └── static/       (incl. icons.css for keyframe-animated icons)
-├── Sadik_Movie_metadata/                     # Mini-Project 2 — Movie RAG (port 5005)
-│   ├── app.py
-│   ├── requirements.txt
-│   ├── templates/index.html
-│   └── README.md
 └── data_extra/                               # auto-created on first run; caches downloaded datasets
 ```
-
-> **Note:** Both Flask apps default to `http://127.0.0.1:5005`. Run them one at a time, or set `PORT=5006` (etc.) on one of them.
 
 ---
 
@@ -122,22 +115,7 @@ multi-step questionnaire, animated risk gauge, animated SVG plans for exercises 
 sample meal plans by risk tier, persistent assessment history (SQLite) with a sparkline,
 PDF report download (ReportLab), and an Ollama-grounded RAG chat (`minimax-m2.1:cloud`).
 
-See `webapp/README.md` for setup + run instructions. Runs at **<http://127.0.0.1:5005>**.
-
----
-
-## Mini-Project 2 — `Sadik_Movie_metadata/`
-
-A separate Flask + Ollama RAG mini-app for **movie metadata**:
-TF-IDF + cosine-similarity retrieval over `movies_metadata.csv` → builds a compact context block → sends a **grounded** prompt to `minimax-m2.1:cloud` via the Ollama HTTP API → returns a 3–6-sentence answer that cites each movie by its bracketed number.
-
-```text
-Question → Retrieve (TF-IDF top 5) → Build Context → Ollama LLM → Grounded Answer
-```
-
-Implements the four required pure functions (`load_movies`, `retrieve_movies`, `build_context`, `ask_ollama`), a single Flask route at `/`, a `/health` JSON endpoint, retrieval & LLM timing in the header, and graceful error handling for empty input, missing Ollama, HTTP non-200, non-JSON, and timeouts.
-
-See [`Sadik_Movie_metadata/README.md`](./Sadik_Movie_metadata/README.md). Runs at **<http://127.0.0.1:5005>**.
+See `webapp/README.md` for setup + run instructions.
 
 ---
 
