@@ -4,7 +4,13 @@
 
 <section class="form-wrap">
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-  <div class="progress-label">Step <span id="stepNum">1</span> of <span id="stepTotal">5</span></div>
+  <div class="progress-label">
+    Step <span id="stepNum">1</span> of <span id="stepTotal">7</span>
+    <span class="answered-pill">
+      <b id="answeredNow">0</b> / <b id="answeredTotal">18</b> answered
+      <small>(at least <b>7</b> required)</small>
+    </span>
+  </div>
 
   {% if error %}
   <div class="alert error">{{ error }}</div>
@@ -12,86 +18,223 @@
 
   <form method="post" action="{{ url_for('assess') }}" id="assessForm" novalidate>
 
+    <!-- ============= STEP 1 · About you ============= -->
     <fieldset class="step-card active" data-step="1">
       <h2>1 · About you</h2>
-      <label>Age (years)
-        <input type="number" name="age_years" min="18" max="100" step="1" required value="{{ form.age_years if form else '' }}">
-      </label>
-      <label>Sex at birth
-        <select name="gender" required>
-          <option value="" disabled {{ '' if form and form.gender else 'selected' }}>Choose one…</option>
-          <option value="1" {{ 'selected' if form and form.gender == '1' else '' }}>Female</option>
-          <option value="2" {{ 'selected' if form and form.gender == '2' else '' }}>Male</option>
-        </select>
-      </label>
+      <p class="muted">Every question on this form is optional. Leave anything blank or press <em>Skip step</em> if you'd rather not say. We just need any 7 of them.</p>
+
+      <div class="question">
+        <label>Age (years)
+          <input type="number" name="age_years" min="12" max="110" step="1"
+                 placeholder="e.g. 45 — or leave blank to skip"
+                 value="{{ form.age_years if form else '' }}">
+        </label>
+      </div>
+
+      <div class="question">
+        <label>Sex at birth
+          <select name="gender">
+            <option value="" {{ 'selected' if not (form and form.gender) else '' }}>— Prefer not to say —</option>
+            <option value="1" {{ 'selected' if form and form.gender == '1' else '' }}>Female</option>
+            <option value="2" {{ 'selected' if form and form.gender == '2' else '' }}>Male</option>
+          </select>
+        </label>
+      </div>
     </fieldset>
 
+    <!-- ============= STEP 2 · Body measurements ============= -->
     <fieldset class="step-card" data-step="2">
       <h2>2 · Body measurements</h2>
-      <label>Height (cm)
-        <input type="number" name="height_cm" min="120" max="220" step="1" required value="{{ form.height_cm if form else '' }}">
-      </label>
-      <label>Weight (kg)
-        <input type="number" name="weight_kg" min="35" max="250" step="0.1" required value="{{ form.weight_kg if form else '' }}">
-      </label>
-      <div class="hint" id="bmiHint">BMI will be computed automatically.</div>
+
+      <div class="question">
+        <label>Height (cm)
+          <input type="number" name="height_cm" min="80" max="230" step="1"
+                 placeholder="e.g. 170"
+                 value="{{ form.height_cm if form else '' }}">
+        </label>
+      </div>
+
+      <div class="question">
+        <label>Weight (kg)
+          <input type="number" name="weight_kg" min="25" max="300" step="0.1"
+                 placeholder="e.g. 75"
+                 value="{{ form.weight_kg if form else '' }}">
+        </label>
+        <div class="hint" id="bmiHint">BMI will be computed automatically when both fields are filled.</div>
+      </div>
     </fieldset>
 
+    <!-- ============= STEP 3 · Blood pressure ============= -->
     <fieldset class="step-card" data-step="3">
       <h2>3 · Blood pressure</h2>
-      <p class="muted">If you don't know your exact numbers, use the last reading from your doctor or a home monitor. A typical resting BP is around 120/80 mmHg.</p>
-      <label>Systolic BP — top number (mmHg)
-        <input type="number" name="ap_hi" min="80" max="250" step="1" required value="{{ form.ap_hi if form else '' }}">
-      </label>
-      <label>Diastolic BP — bottom number (mmHg)
-        <input type="number" name="ap_lo" min="40" max="160" step="1" required value="{{ form.ap_lo if form else '' }}">
-      </label>
+      <p class="muted">If you don't know your numbers, just skip — a typical resting BP is around 120/80 mmHg.</p>
+
+      <div class="question">
+        <label>Systolic BP — top number (mmHg)
+          <input type="number" name="ap_hi" min="60" max="260" step="1"
+                 placeholder="e.g. 120"
+                 value="{{ form.ap_hi if form else '' }}">
+        </label>
+      </div>
+
+      <div class="question">
+        <label>Diastolic BP — bottom number (mmHg)
+          <input type="number" name="ap_lo" min="30" max="200" step="1"
+                 placeholder="e.g. 80"
+                 value="{{ form.ap_lo if form else '' }}">
+        </label>
+      </div>
     </fieldset>
 
+    <!-- ============= STEP 4 · Cholesterol & glucose ============= -->
     <fieldset class="step-card" data-step="4">
-      <h2>4 · Cholesterol & glucose</h2>
-      <p class="muted">If you don't have lab values, choose <em>Normal</em> unless your doctor has told you otherwise.</p>
-      <label>Cholesterol level
-        <select name="cholesterol" required>
-          <option value="" disabled {{ '' if form and form.cholesterol else 'selected' }}>Choose one…</option>
-          <option value="1" {{ 'selected' if form and form.cholesterol == '1' else '' }}>Normal (&lt; 200 mg/dL)</option>
-          <option value="2" {{ 'selected' if form and form.cholesterol == '2' else '' }}>Above normal (200–239 mg/dL)</option>
-          <option value="3" {{ 'selected' if form and form.cholesterol == '3' else '' }}>Well above normal (≥ 240 mg/dL)</option>
-        </select>
-      </label>
-      <label>Glucose level
-        <select name="gluc" required>
-          <option value="" disabled {{ '' if form and form.gluc else 'selected' }}>Choose one…</option>
-          <option value="1" {{ 'selected' if form and form.gluc == '1' else '' }}>Normal (&lt; 100 mg/dL)</option>
-          <option value="2" {{ 'selected' if form and form.gluc == '2' else '' }}>Above normal (100–125 mg/dL)</option>
-          <option value="3" {{ 'selected' if form and form.gluc == '3' else '' }}>Well above normal (≥ 126 mg/dL)</option>
-        </select>
-      </label>
+      <h2>4 · Cholesterol &amp; glucose</h2>
+      <p class="muted">If you don't have lab values, choose <em>Normal</em> or skip — we'll mark them as unknown.</p>
+
+      <div class="question">
+        <label>Cholesterol level
+          <select name="cholesterol">
+            <option value="" {{ 'selected' if not (form and form.cholesterol) else '' }}>— Not sure / skip —</option>
+            <option value="1" {{ 'selected' if form and form.cholesterol == '1' else '' }}>Normal (&lt; 200 mg/dL)</option>
+            <option value="2" {{ 'selected' if form and form.cholesterol == '2' else '' }}>Above normal (200–239 mg/dL)</option>
+            <option value="3" {{ 'selected' if form and form.cholesterol == '3' else '' }}>Well above normal (≥ 240 mg/dL)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="question">
+        <label>Glucose level
+          <select name="gluc">
+            <option value="" {{ 'selected' if not (form and form.gluc) else '' }}>— Not sure / skip —</option>
+            <option value="1" {{ 'selected' if form and form.gluc == '1' else '' }}>Normal (&lt; 100 mg/dL)</option>
+            <option value="2" {{ 'selected' if form and form.gluc == '2' else '' }}>Above normal (100–125 mg/dL)</option>
+            <option value="3" {{ 'selected' if form and form.gluc == '3' else '' }}>Well above normal (≥ 126 mg/dL)</option>
+          </select>
+        </label>
+      </div>
     </fieldset>
 
+    <!-- ============= STEP 5 · Lifestyle ============= -->
     <fieldset class="step-card" data-step="5">
-      <h2>5 · Lifestyle</h2>
-      <div class="toggle-row">
-        <label class="toggle">
-          <input type="checkbox" name="smoke" value="1" {{ 'checked' if form and form.smoke == '1' else '' }}>
-          <span class="toggle-face">🚬<br><b>Smoker</b><small>Currently or in last 6 months</small></span>
+      <h2>5 · Lifestyle habits</h2>
+      <p class="muted">Pick Yes or No. Leaving both unselected = skipped.</p>
+
+      <div class="question">
+        <div class="qlabel">🚬 Are you a current smoker? <small>(any tobacco in the last 6 months)</small></div>
+        <div class="chip-group" data-name="smoke">
+          <label class="chip"><input type="radio" name="smoke" value="1" {{ 'checked' if form and form.smoke == '1' else '' }}><span>Yes</span></label>
+          <label class="chip"><input type="radio" name="smoke" value="0" {{ 'checked' if form and form.smoke == '0' else '' }}><span>No</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="qlabel">🍺 Do you regularly drink alcohol? <small>(2+ drinks most days)</small></div>
+        <div class="chip-group" data-name="alco">
+          <label class="chip"><input type="radio" name="alco" value="1" {{ 'checked' if form and form.alco == '1' else '' }}><span>Yes</span></label>
+          <label class="chip"><input type="radio" name="alco" value="0" {{ 'checked' if form and form.alco == '0' else '' }}><span>No</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="qlabel">🏃 Are you physically active? <small>(at least 150 min/week of moderate exercise)</small></div>
+        <div class="chip-group" data-name="active">
+          <label class="chip"><input type="radio" name="active" value="1" {{ 'checked' if form and form.active == '1' else '' }}><span>Yes</span></label>
+          <label class="chip"><input type="radio" name="active" value="0" {{ 'checked' if form and form.active == '0' else '' }}><span>No</span></label>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ============= STEP 6 · Diet & rest ============= -->
+    <fieldset class="step-card" data-step="6">
+      <h2>6 · Diet &amp; rest</h2>
+      <p class="muted">These extra signals help the AI tailor your plan — none of them are mandatory.</p>
+
+      <div class="question">
+        <label>Overall diet pattern
+          <select name="diet_pattern">
+            <option value="" {{ 'selected' if not (form and form.diet_pattern) else '' }}>— Skip —</option>
+            <option value="mediterranean" {{ 'selected' if form and form.diet_pattern == 'mediterranean' else '' }}>Mediterranean (fish, olive oil, veg)</option>
+            <option value="balanced" {{ 'selected' if form and form.diet_pattern == 'balanced' else '' }}>Balanced / mixed</option>
+            <option value="processed" {{ 'selected' if form and form.diet_pattern == 'processed' else '' }}>Mostly processed / fast food</option>
+            <option value="vegetarian" {{ 'selected' if form and form.diet_pattern == 'vegetarian' else '' }}>Vegetarian</option>
+            <option value="vegan" {{ 'selected' if form and form.diet_pattern == 'vegan' else '' }}>Vegan / plant-based</option>
+          </select>
         </label>
-        <label class="toggle">
-          <input type="checkbox" name="alco" value="1" {{ 'checked' if form and form.alco == '1' else '' }}>
-          <span class="toggle-face">🍺<br><b>Alcohol</b><small>Regular drinker</small></span>
+      </div>
+
+      <div class="question">
+        <label>Salt intake
+          <select name="salt_intake">
+            <option value="" {{ 'selected' if not (form and form.salt_intake) else '' }}>— Skip —</option>
+            <option value="low" {{ 'selected' if form and form.salt_intake == 'low' else '' }}>Low (rarely add salt)</option>
+            <option value="medium" {{ 'selected' if form and form.salt_intake == 'medium' else '' }}>Medium (typical)</option>
+            <option value="high" {{ 'selected' if form and form.salt_intake == 'high' else '' }}>High (salty snacks, processed)</option>
+          </select>
         </label>
-        <label class="toggle">
-          <input type="checkbox" name="active" value="1" {{ 'checked' if form and form.active == '1' else '' }}>
-          <span class="toggle-face">🏃<br><b>Physically active</b><small>At least 150 min/week</small></span>
+      </div>
+
+      <div class="question">
+        <label>Sugary drinks per day
+          <select name="sugary_drinks">
+            <option value="" {{ 'selected' if not (form and form.sugary_drinks) else '' }}>— Skip —</option>
+            <option value="none" {{ 'selected' if form and form.sugary_drinks == 'none' else '' }}>None / rarely</option>
+            <option value="1-2" {{ 'selected' if form and form.sugary_drinks == '1-2' else '' }}>1–2 per day</option>
+            <option value="3+" {{ 'selected' if form and form.sugary_drinks == '3+' else '' }}>3 or more per day</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="question">
+        <label>Sleep (hours per night, average)
+          <input type="number" name="sleep_hours" min="3" max="14" step="0.5"
+                 placeholder="e.g. 7.5"
+                 value="{{ form.sleep_hours if form else '' }}">
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- ============= STEP 7 · History & wellbeing ============= -->
+    <fieldset class="step-card" data-step="7">
+      <h2>7 · History &amp; wellbeing</h2>
+
+      <div class="question">
+        <div class="qlabel">👨‍👩‍👧 Did a parent or sibling have heart disease before age 60?</div>
+        <div class="chip-group" data-name="family_history">
+          <label class="chip"><input type="radio" name="family_history" value="1" {{ 'checked' if form and form.family_history == '1' else '' }}><span>Yes</span></label>
+          <label class="chip"><input type="radio" name="family_history" value="0" {{ 'checked' if form and form.family_history == '0' else '' }}><span>No</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="qlabel">🩺 Existing diagnoses <small>(pick any that apply, or "None")</small></div>
+        <div class="check-grid" data-group="conditions">
+          <label class="check"><input type="checkbox" name="condition" value="diabetes" {{ 'checked' if form and 'diabetes' in (form.getlist('condition') if form else []) else '' }}><span>Diabetes</span></label>
+          <label class="check"><input type="checkbox" name="condition" value="hypertension" {{ 'checked' if form and 'hypertension' in (form.getlist('condition') if form else []) else '' }}><span>Hypertension</span></label>
+          <label class="check"><input type="checkbox" name="condition" value="kidney" {{ 'checked' if form and 'kidney' in (form.getlist('condition') if form else []) else '' }}><span>Kidney disease</span></label>
+          <label class="check"><input type="checkbox" name="condition" value="none" {{ 'checked' if form and 'none' in (form.getlist('condition') if form else []) else '' }}><span>None of these</span></label>
+        </div>
+      </div>
+
+      <div class="question">
+        <label>Average stress level
+          <select name="stress_level">
+            <option value="" {{ 'selected' if not (form and form.stress_level) else '' }}>— Skip —</option>
+            <option value="low" {{ 'selected' if form and form.stress_level == 'low' else '' }}>Low</option>
+            <option value="medium" {{ 'selected' if form and form.stress_level == 'medium' else '' }}>Medium</option>
+            <option value="high" {{ 'selected' if form and form.stress_level == 'high' else '' }}>High</option>
+          </select>
         </label>
       </div>
     </fieldset>
 
     <div class="step-actions">
       <button type="button" class="cta ghost" id="backBtn" disabled>← Back</button>
+      <button type="button" class="cta ghost" id="skipBtn">Skip step</button>
       <button type="button" class="cta primary" id="nextBtn">Next →</button>
       <button type="submit" class="cta primary hidden" id="submitBtn">See my risk →</button>
     </div>
+
+    <p class="muted minimum-hint" id="minHint">Answer at least <b>7</b> of the 18 questions to see your risk.</p>
   </form>
 </section>
 

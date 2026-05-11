@@ -62,63 +62,222 @@ def _dt_filter(epoch: float) -> str:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-def _parse_questionnaire(form: dict[str, str]) -> dict[str, Any] | None:
-    """Validate and coerce the 11 form fields into the patient dict."""
-    try:
-        patient = {
-            "age_years": float(form["age_years"]),
-            "gender": int(form["gender"]),
-            "height_cm": float(form["height_cm"]),
-            "weight_kg": float(form["weight_kg"]),
-            "ap_hi": float(form["ap_hi"]),
-            "ap_lo": float(form["ap_lo"]),
-            "cholesterol": int(form["cholesterol"]),
-            "gluc": int(form["gluc"]),
-            "smoke": int(form.get("smoke", 0)),
-            "alco": int(form.get("alco", 0)),
-            "active": int(form.get("active", 0)),
-        }
-    except (KeyError, ValueError):
-        return None
+MIN_ANSWERED = 7
+TOTAL_QUESTIONS = 18
 
-    if not (12 <= patient["age_years"] <= 110):
-        return None
-    if patient["gender"] not in (1, 2):
-        return None
-    if not (80 <= patient["height_cm"] <= 230):
-        return None
-    if not (25 <= patient["weight_kg"] <= 300):
-        return None
-    if not (60 <= patient["ap_hi"] <= 260):
-        return None
-    if not (30 <= patient["ap_lo"] <= 200):
-        return None
-    if patient["ap_hi"] <= patient["ap_lo"]:
-        return None
-    if patient["cholesterol"] not in (1, 2, 3):
-        return None
-    if patient["gluc"] not in (1, 2, 3):
-        return None
-    return patient
+# Population-median defaults used when a core model field was skipped.
+# Chosen to land an "average adult" near the dataset's 50% baseline.
+_DEFAULTS: dict[str, Any] = {
+    "age_years": 50.0,
+    "gender": 1,        # female (slight majority in Kaggle cohort)
+    "height_cm": 165.0,
+    "weight_kg": 75.0,
+    "ap_hi": 120.0,
+    "ap_lo": 80.0,
+    "cholesterol": 1,   # normal
+    "gluc": 1,          # normal
+    "smoke": 0,
+    "alco": 0,
+    "active": 1,
+}
+
+_CORE_FIELDS: tuple[str, ...] = tuple(_DEFAULTS.keys())
+
+
+def _opt_float(form: dict, name: str, lo: float, hi: float) -> tuple[float | None, bool]:
+    """Return (value, was_invalid). Empty value → (None, False)."""
+    raw = (form.get(name) or "").strip()
+    if not raw:
+        return None, False
+    try:
+        v = float(raw)
+    except ValueError:
+        return None, True
+    if not (lo <= v <= hi):
+        return None, True
+    return v, False
+
+
+def _opt_int_in(form: dict, name: str, allowed: set[int]) -> tuple[int | None, bool]:
+    raw = (form.get(name) or "").strip()
+    if not raw:
+        return None, False
+    try:
+        v = int(raw)
+    except ValueError:
+        return None, True
+    if v not in allowed:
+        return None, True
+    return v, False
+
+
+def _opt_bool(form: dict, name: str) -> int | None:
+    """Yes/No radio chips: '1' → 1, '0' → 0, missing → None (skipped)."""
+    raw = (form.get(name) or "").strip()
+    if raw == "1":
+        return 1
+    if raw == "0":
+        return 0
+    return None
+
+
+def _parse_questionnaire(form) -> tuple[dict[str, Any] | None, str | None]:
+    """Parse the 18-question form. Every field is optional; we just need ≥7.
+
+    Returns ``(patient_dict, None)`` on success, or ``(None, error_msg)`` on failure.
+    Missing core model fields are imputed with population medians and recorded
+    in ``patient['_imputed']`` so the UI can flag them.
+    """
+    raw: dict[str, Any] = {}
+    invalid: list[str] = []
+
+    def _take(name, value, was_invalid, label):
+        if was_invalid:
+            invalid.append(label)
+        raw[name] = value
+
+    _take("age_years",   *_opt_float(form, "age_years", 12, 110), "Age")
+    _take("gender",      *_opt_int_in(form, "gender", {1, 2}),    "Sex")
+    _take("height_cm",   *_opt_float(form, "height_cm", 80, 230), "Height")
+    _take("weight_kg",   *_opt_float(form, "weight_kg", 25, 300), "Weight")
+    _take("ap_hi",       *_opt_float(form, "ap_hi", 60, 260),     "Systolic BP")
+    _take("ap_lo",       *_opt_float(form, "ap_lo", 30, 200),     "Diastolic BP")
+    _take("cholesterol", *_opt_int_in(form, "cholesterol", {1, 2, 3}), "Cholesterol")
+    _take("gluc",        *_opt_int_in(form, "gluc",        {1, 2, 3}), "Glucose")
+    raw["smoke"]  = _opt_bool(form, "smoke")
+    raw["alco"]   = _opt_bool(form, "alco")
+    raw["active"] = _opt_bool(form, "active")
+
+    if invalid:
+        return None, (
+            "These values look out of range — please correct them or skip the field: "
+            + ", ".join(invalid) + "."
+        )
+
+    # BP sanity (only if both supplied)
+    if raw["ap_hi"] is not None and raw["ap_lo"] is not None and raw["ap_hi"] <= raw["ap_lo"]:
+        return None, "Systolic BP must be higher than diastolic BP."
+
+    # ── Optional enrichment fields (not used by the trained model) ─────────────
+    sleep_hours, sleep_bad = _opt_float(form, "sleep_hours", 3, 14)
+    if sleep_bad:
+        return None, "Sleep hours look out of range — please use a value between 3 and 14."
+
+    def _opt_choice(name, allowed):
+        v = (form.get(name) or "").strip().lower()
+        return v if v in allowed else None
+
+    enrichment = {
+        "diet_pattern":   _opt_choice("diet_pattern",
+                                      {"mediterranean", "balanced", "processed", "vegetarian", "vegan"}),
+        "salt_intake":    _opt_choice("salt_intake", {"low", "medium", "high"}),
+        "sugary_drinks":  _opt_choice("sugary_drinks", {"none", "1-2", "3+"}),
+        "sleep_hours":    sleep_hours,
+        "family_history": _opt_bool(form, "family_history"),
+        "stress_level":   _opt_choice("stress_level", {"low", "medium", "high"}),
+        "conditions":     [c for c in form.getlist("condition")
+                           if c in {"diabetes", "hypertension", "kidney", "none"}],
+    }
+
+    # ── Count answered questions ───────────────────────────────────────────────
+    answered = 0
+    for f in _CORE_FIELDS:
+        if raw.get(f) is not None:
+            answered += 1
+    for k, v in enrichment.items():
+        if k == "conditions":
+            if v:
+                answered += 1
+        elif v is not None:
+            answered += 1
+
+    if answered < MIN_ANSWERED:
+        return None, (
+            f"Please answer at least {MIN_ANSWERED} of the {TOTAL_QUESTIONS} questions to see your risk. "
+            f"You answered {answered}."
+        )
+
+    # ── Impute missing core fields ─────────────────────────────────────────────
+    imputed: list[str] = []
+    patient: dict[str, Any] = {}
+    for f in _CORE_FIELDS:
+        if raw[f] is None:
+            patient[f] = _DEFAULTS[f]
+            imputed.append(f)
+        else:
+            patient[f] = raw[f]
+
+    patient["_imputed"] = imputed
+    patient["_provided_count"] = answered
+    patient["_enrichment"] = enrichment
+    return patient, None
+
+
+# Pretty labels for imputation banner / patient summary
+_IMPUTED_LABEL = {
+    "age_years": "age",
+    "gender": "sex",
+    "height_cm": "height",
+    "weight_kg": "weight",
+    "ap_hi": "systolic BP",
+    "ap_lo": "diastolic BP",
+    "cholesterol": "cholesterol",
+    "gluc": "glucose",
+    "smoke": "smoking status",
+    "alco": "alcohol use",
+    "active": "physical activity",
+}
 
 
 def _patient_summary(patient: dict[str, Any], assessment) -> str:
     chol_labels = {1: "normal", 2: "above normal", 3: "well above normal"}
     gluc_labels = {1: "normal", 2: "above normal", 3: "well above normal"}
-    sex_labels = {1: "female", 2: "male"}
+    sex_labels  = {1: "female", 2: "male"}
+
+    imputed = set(patient.get("_imputed") or [])
+    def _mark(name: str, text: str) -> str:
+        return f"{text} (estimated)" if name in imputed else text
+
     bmi = patient.get("bmi") or round(
         patient["weight_kg"] / ((patient["height_cm"] / 100) ** 2), 1
     )
-    return (
-        f"Age {patient['age_years']:.0f}; sex {sex_labels[patient['gender']]}; "
-        f"BMI {bmi:.1f}; blood pressure {patient['ap_hi']:.0f}/{patient['ap_lo']:.0f} mmHg; "
-        f"cholesterol {chol_labels[patient['cholesterol']]}; "
-        f"glucose {gluc_labels[patient['gluc']]}; "
-        f"{'smoker' if patient['smoke'] else 'non-smoker'}; "
-        f"{'drinks alcohol' if patient['alco'] else 'no alcohol'}; "
-        f"{'physically active' if patient['active'] else 'physically inactive'}.  "
-        f"Predicted CVD probability {assessment.probability*100:.1f}% — tier {assessment.tier}."
+    bmi_estimated = "height_cm" in imputed or "weight_kg" in imputed
+
+    parts = [
+        _mark("age_years", f"Age {patient['age_years']:.0f}"),
+        _mark("gender",    f"sex {sex_labels[patient['gender']]}"),
+        ("BMI " + (f"{bmi:.1f} (estimated)" if bmi_estimated else f"{bmi:.1f}")),
+        _mark("ap_hi",     f"blood pressure {patient['ap_hi']:.0f}/{patient['ap_lo']:.0f} mmHg"),
+        _mark("cholesterol", f"cholesterol {chol_labels[patient['cholesterol']]}"),
+        _mark("gluc",        f"glucose {gluc_labels[patient['gluc']]}"),
+        _mark("smoke",  "smoker" if patient["smoke"]  else "non-smoker"),
+        _mark("alco",   "drinks alcohol" if patient["alco"] else "no alcohol"),
+        _mark("active", "physically active" if patient["active"] else "physically inactive"),
+    ]
+    summary = "; ".join(parts) + "."
+
+    # Append enrichment signals if the user gave them
+    e = patient.get("_enrichment") or {}
+    extras = []
+    if e.get("diet_pattern"):    extras.append(f"diet pattern: {e['diet_pattern']}")
+    if e.get("salt_intake"):     extras.append(f"salt intake: {e['salt_intake']}")
+    if e.get("sugary_drinks"):   extras.append(f"sugary drinks/day: {e['sugary_drinks']}")
+    if e.get("sleep_hours") is not None:
+        extras.append(f"sleeps ~{e['sleep_hours']:.1f} h/night")
+    if e.get("family_history") is not None:
+        extras.append("family history of early CVD" if e["family_history"] else "no family history of early CVD")
+    if e.get("stress_level"):    extras.append(f"stress: {e['stress_level']}")
+    conds = [c for c in (e.get("conditions") or []) if c != "none"]
+    if conds:                    extras.append("existing diagnoses: " + ", ".join(conds))
+    elif "none" in (e.get("conditions") or []):
+        extras.append("no known prior diagnoses")
+    if extras:
+        summary += "  Additional context: " + "; ".join(extras) + "."
+
+    summary += (
+        f"  Predicted CVD probability {assessment.probability*100:.1f}% — tier {assessment.tier}."
     )
+    return summary
 
 
 def _spark_points(rows: list[dict[str, Any]]) -> list[dict[str, float]]:
@@ -150,11 +309,11 @@ def assess():
     if request.method == "GET":
         return render_template("questionnaire.html")
 
-    patient = _parse_questionnaire(request.form)
+    patient, error = _parse_questionnaire(request.form)
     if patient is None:
         return render_template(
             "questionnaire.html",
-            error="Please check your inputs — some values look out of range.",
+            error=error or "Please check your inputs.",
             form=request.form,
         )
 
@@ -167,6 +326,8 @@ def assess():
     assessment_dict = assessment.to_dict()
     assessment_id = save_assessment(sid, patient, assessment_dict, bmi)
 
+    imputed_labels = [_IMPUTED_LABEL.get(k, k) for k in (patient.get("_imputed") or [])]
+
     return render_template(
         "result.html",
         patient=patient,
@@ -176,6 +337,10 @@ def assess():
         summary=summary,
         ollama_up=is_available(),
         assessment_id=assessment_id,
+        imputed_labels=imputed_labels,
+        provided_count=patient.get("_provided_count", 0),
+        total_questions=TOTAL_QUESTIONS,
+        enrichment=patient.get("_enrichment") or {},
     )
 
 

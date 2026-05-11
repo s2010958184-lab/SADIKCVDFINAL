@@ -35,16 +35,35 @@
   <!-- ============= Patient snapshot ============= -->
   <div class="card snapshot-card">
     <h3>Your inputs</h3>
+
+    {% if imputed_labels %}
+      <div class="estimate-banner">
+        You answered <b>{{ provided_count }}</b> of {{ total_questions }} questions.
+        We filled in population-typical defaults for the rest so the model could still run:
+        <b>{{ imputed_labels|join(', ') }}</b>.
+        For a more personal score, retake the assessment with these fields filled in.
+      </div>
+    {% endif %}
+
+    {% set _imp = patient._imputed or [] %}
     <ul class="snapshot">
-      <li><span>Age</span><strong>{{ patient.age_years|int }} yrs</strong></li>
-      <li><span>Sex</span><strong>{{ 'Female' if patient.gender == 1 else 'Male' }}</strong></li>
-      <li><span>BMI</span><strong>{{ bmi }}</strong></li>
-      <li><span>Blood pressure</span><strong>{{ patient.ap_hi|int }}/{{ patient.ap_lo|int }} mmHg</strong></li>
-      <li><span>Cholesterol</span><strong>{{ {1:'Normal',2:'Above',3:'Well above'}[patient.cholesterol] }}</strong></li>
-      <li><span>Glucose</span><strong>{{ {1:'Normal',2:'Above',3:'Well above'}[patient.gluc] }}</strong></li>
-      <li><span>Smoker</span><strong>{{ 'Yes' if patient.smoke else 'No' }}</strong></li>
-      <li><span>Alcohol</span><strong>{{ 'Yes' if patient.alco else 'No' }}</strong></li>
-      <li><span>Active</span><strong>{{ 'Yes' if patient.active else 'No' }}</strong></li>
+      <li><span>Age</span><strong>{{ patient.age_years|int }} yrs{% if 'age_years' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      <li><span>Sex</span><strong>{{ 'Female' if patient.gender == 1 else 'Male' }}{% if 'gender' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      <li><span>BMI</span><strong>{{ bmi }}{% if 'height_cm' in _imp or 'weight_kg' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      <li><span>Blood pressure</span><strong>{{ patient.ap_hi|int }}/{{ patient.ap_lo|int }} mmHg{% if 'ap_hi' in _imp or 'ap_lo' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      <li><span>Cholesterol</span><strong>{{ {1:'Normal',2:'Above',3:'Well above'}[patient.cholesterol] }}{% if 'cholesterol' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      <li><span>Glucose</span><strong>{{ {1:'Normal',2:'Above',3:'Well above'}[patient.gluc] }}{% if 'gluc' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      <li><span>Smoker</span><strong>{{ 'Yes' if patient.smoke else 'No' }}{% if 'smoke' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      <li><span>Alcohol</span><strong>{{ 'Yes' if patient.alco else 'No' }}{% if 'alco' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      <li><span>Active</span><strong>{{ 'Yes' if patient.active else 'No' }}{% if 'active' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      {% if enrichment.diet_pattern %}<li><span>Diet pattern</span><strong>{{ enrichment.diet_pattern|capitalize }}</strong></li>{% endif %}
+      {% if enrichment.salt_intake %}<li><span>Salt intake</span><strong>{{ enrichment.salt_intake|capitalize }}</strong></li>{% endif %}
+      {% if enrichment.sugary_drinks %}<li><span>Sugary drinks/day</span><strong>{{ enrichment.sugary_drinks }}</strong></li>{% endif %}
+      {% if enrichment.sleep_hours is not none %}<li><span>Sleep</span><strong>{{ enrichment.sleep_hours }} h/night</strong></li>{% endif %}
+      {% if enrichment.family_history is not none %}<li><span>Family history</span><strong>{{ 'Yes (early CVD)' if enrichment.family_history else 'No' }}</strong></li>{% endif %}
+      {% if enrichment.stress_level %}<li><span>Stress</span><strong>{{ enrichment.stress_level|capitalize }}</strong></li>{% endif %}
+      {% set _conds = enrichment.conditions or [] %}
+      {% if _conds and _conds != ['none'] %}<li><span>Diagnoses</span><strong>{{ _conds|reject('equalto', 'none')|join(', ') }}</strong></li>{% endif %}
     </ul>
     <div class="action-bar">
       {% if assessment_id %}
