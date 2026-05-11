@@ -117,7 +117,7 @@ webapp/
 
 ---
 
-## How it mirrors the movie-RAG pattern
+## How it mirrors the RAG pattern
 
 | Movie RAG | This app |
 |---|---|
