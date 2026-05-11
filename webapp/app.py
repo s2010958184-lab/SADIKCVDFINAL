@@ -62,8 +62,8 @@ def _dt_filter(epoch: float) -> str:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-MIN_ANSWERED = 7
-TOTAL_QUESTIONS = 18
+MIN_ANSWERED = 10
+TOTAL_QUESTIONS = 30
 
 # Population-median defaults used when a core model field was skipped.
 # Chosen to land an "average adult" near the dataset's 50% baseline.
@@ -163,20 +163,48 @@ def _parse_questionnaire(form) -> tuple[dict[str, Any] | None, str | None]:
     if sleep_bad:
         return None, "Sleep hours look out of range — please use a value between 3 and 14."
 
+    waist_cm, waist_bad = _opt_float(form, "waist_cm", 40, 200)
+    if waist_bad:
+        return None, "Waist circumference looks out of range — please use a value between 40 and 200 cm."
+
+    resting_hr, hr_bad = _opt_float(form, "resting_hr", 30, 220)
+    if hr_bad:
+        return None, "Resting heart rate looks out of range — please use a value between 30 and 220 bpm."
+
     def _opt_choice(name, allowed):
         v = (form.get(name) or "").strip().lower()
         return v if v in allowed else None
 
     enrichment = {
+        # — diet & lifestyle —
         "diet_pattern":   _opt_choice("diet_pattern",
                                       {"mediterranean", "balanced", "processed", "vegetarian", "vegan"}),
         "salt_intake":    _opt_choice("salt_intake", {"low", "medium", "high"}),
         "sugary_drinks":  _opt_choice("sugary_drinks", {"none", "1-2", "3+"}),
+        "fruit_veg":      _opt_choice("fruit_veg", {"0", "1-2", "3-4", "5+"}),
+        "red_meat":       _opt_choice("red_meat", {"rarely", "weekly", "daily"}),
+        # — sleep & sitting —
         "sleep_hours":    sleep_hours,
+        "sleep_apnea":    _opt_bool(form, "sleep_apnea"),
+        "sitting_hours":  _opt_choice("sitting_hours", {"lt4", "4-8", "gt8"}),
+        # — body composition + autonomic —
+        "waist_cm":       waist_cm,
+        "resting_hr":     resting_hr,
+        # — labs (extra) —
+        "hdl":            _opt_choice("hdl", {"low", "normal", "high"}),
+        # — medications —
+        "bp_med":         _opt_bool(form, "bp_med"),
+        "statin":         _opt_bool(form, "statin"),
+        # — history & symptoms —
         "family_history": _opt_bool(form, "family_history"),
+        "prior_event":    _opt_bool(form, "prior_event"),
+        "chest_pain":     _opt_bool(form, "chest_pain"),
+        # — mental health & wellbeing —
         "stress_level":   _opt_choice("stress_level", {"low", "medium", "high"}),
+        "mental_health":  _opt_bool(form, "mental_health"),
+        # — multi-select conditions —
         "conditions":     [c for c in form.getlist("condition")
-                           if c in {"diabetes", "hypertension", "kidney", "none"}],
+                           if c in {"diabetes", "hypertension", "kidney", "afib", "none"}],
     }
 
     # ── Count answered questions ───────────────────────────────────────────────
@@ -258,19 +286,65 @@ def _patient_summary(patient: dict[str, Any], assessment) -> str:
 
     # Append enrichment signals if the user gave them
     e = patient.get("_enrichment") or {}
-    extras = []
+    extras: list[str] = []
+
+    # body composition + autonomic
+    if e.get("waist_cm") is not None:
+        extras.append(f"waist circumference {e['waist_cm']:.0f} cm")
+    if e.get("resting_hr") is not None:
+        extras.append(f"resting HR {e['resting_hr']:.0f} bpm")
+
+    # labs (extra)
+    if e.get("hdl"):
+        extras.append(f"HDL cholesterol: {e['hdl']}")
+
+    # medications (important context for any BP / lipid reading)
+    if e.get("bp_med") is not None:
+        extras.append("on BP medication" if e["bp_med"] else "not on BP medication")
+    if e.get("statin") is not None:
+        extras.append("on statin / lipid-lowering medication" if e["statin"] else "not on lipid-lowering medication")
+
+    # diet
     if e.get("diet_pattern"):    extras.append(f"diet pattern: {e['diet_pattern']}")
     if e.get("salt_intake"):     extras.append(f"salt intake: {e['salt_intake']}")
     if e.get("sugary_drinks"):   extras.append(f"sugary drinks/day: {e['sugary_drinks']}")
+    if e.get("fruit_veg"):       extras.append(f"fruit+veg servings/day: {e['fruit_veg']}")
+    if e.get("red_meat"):        extras.append(f"red/processed meat: {e['red_meat']}")
+
+    # sleep & sitting
     if e.get("sleep_hours") is not None:
         extras.append(f"sleeps ~{e['sleep_hours']:.1f} h/night")
+    if e.get("sleep_apnea") is not None:
+        extras.append("sleep apnea / heavy snoring + daytime fatigue" if e["sleep_apnea"]
+                      else "no sleep-apnea symptoms")
+    if e.get("sitting_hours"):
+        _sit_label = {"lt4": "< 4 h", "4-8": "4–8 h", "gt8": "> 8 h"}.get(e["sitting_hours"], e["sitting_hours"])
+        extras.append(f"daily sitting: {_sit_label}")
+
+    # history & symptoms
     if e.get("family_history") is not None:
         extras.append("family history of early CVD" if e["family_history"] else "no family history of early CVD")
-    if e.get("stress_level"):    extras.append(f"stress: {e['stress_level']}")
+    if e.get("prior_event") is not None:
+        extras.append("PRIOR HEART ATTACK / STROKE / TIA" if e["prior_event"]
+                      else "no prior heart attack or stroke")
+    if e.get("chest_pain") is not None:
+        extras.append("chest discomfort / dyspnea on exertion" if e["chest_pain"]
+                      else "no chest discomfort on exertion")
+
+    # mental health
+    if e.get("stress_level"):
+        extras.append(f"stress: {e['stress_level']}")
+    if e.get("mental_health") is not None:
+        extras.append("history of anxiety/depression" if e["mental_health"]
+                      else "no anxiety/depression history")
+
+    # conditions
     conds = [c for c in (e.get("conditions") or []) if c != "none"]
-    if conds:                    extras.append("existing diagnoses: " + ", ".join(conds))
+    if conds:
+        extras.append("existing diagnoses: " + ", ".join(conds))
     elif "none" in (e.get("conditions") or []):
         extras.append("no known prior diagnoses")
+
     if extras:
         summary += "  Additional context: " + "; ".join(extras) + "."
 

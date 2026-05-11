@@ -2,13 +2,13 @@
    Multi-step questionnaire, animated risk gauge, AJAX chat */
 
 /* ============================================================
-   QUESTIONNAIRE — 18 optional questions across 7 steps
-   • At least 7 must be answered
+   QUESTIONNAIRE — 30 optional questions across 10 steps
+   • At least 10 must be answered
    • Every step has a "Skip step" button that clears it and advances
-   • Live "X / 18 answered" counter
+   • Live "X / 30 answered" counter
    • Soft per-field validation: range only, no required fields
    ============================================================ */
-const MIN_ANSWERED = 7;
+const MIN_ANSWERED = 10;
 
 function initQuestionnaire() {
   const form = document.getElementById("assessForm");

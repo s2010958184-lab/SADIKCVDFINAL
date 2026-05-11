@@ -56,12 +56,32 @@
       <li><span>Smoker</span><strong>{{ 'Yes' if patient.smoke else 'No' }}{% if 'smoke' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
       <li><span>Alcohol</span><strong>{{ 'Yes' if patient.alco else 'No' }}{% if 'alco' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
       <li><span>Active</span><strong>{{ 'Yes' if patient.active else 'No' }}{% if 'active' in _imp %} <em>(est.)</em>{% endif %}</strong></li>
+      {# — body / autonomic — #}
+      {% if enrichment.waist_cm is not none %}<li><span>Waist</span><strong>{{ enrichment.waist_cm|int }} cm</strong></li>{% endif %}
+      {% if enrichment.resting_hr is not none %}<li><span>Resting HR</span><strong>{{ enrichment.resting_hr|int }} bpm</strong></li>{% endif %}
+      {# — labs — #}
+      {% if enrichment.hdl %}<li><span>HDL</span><strong>{{ enrichment.hdl|capitalize }}</strong></li>{% endif %}
+      {# — medications — #}
+      {% if enrichment.bp_med is not none %}<li><span>BP medication</span><strong>{{ 'Yes' if enrichment.bp_med else 'No' }}</strong></li>{% endif %}
+      {% if enrichment.statin is not none %}<li><span>Statin</span><strong>{{ 'Yes' if enrichment.statin else 'No' }}</strong></li>{% endif %}
+      {# — diet — #}
       {% if enrichment.diet_pattern %}<li><span>Diet pattern</span><strong>{{ enrichment.diet_pattern|capitalize }}</strong></li>{% endif %}
       {% if enrichment.salt_intake %}<li><span>Salt intake</span><strong>{{ enrichment.salt_intake|capitalize }}</strong></li>{% endif %}
       {% if enrichment.sugary_drinks %}<li><span>Sugary drinks/day</span><strong>{{ enrichment.sugary_drinks }}</strong></li>{% endif %}
+      {% if enrichment.fruit_veg %}<li><span>Fruit + veg / day</span><strong>{{ enrichment.fruit_veg }}</strong></li>{% endif %}
+      {% if enrichment.red_meat %}<li><span>Red / processed meat</span><strong>{{ enrichment.red_meat|capitalize }}</strong></li>{% endif %}
+      {# — sleep / sitting — #}
       {% if enrichment.sleep_hours is not none %}<li><span>Sleep</span><strong>{{ enrichment.sleep_hours }} h/night</strong></li>{% endif %}
+      {% if enrichment.sleep_apnea is not none %}<li><span>Sleep apnea signs</span><strong>{{ 'Yes' if enrichment.sleep_apnea else 'No' }}</strong></li>{% endif %}
+      {% if enrichment.sitting_hours %}<li><span>Daily sitting</span><strong>{{ {'lt4':'< 4 h','4-8':'4–8 h','gt8':'> 8 h'}[enrichment.sitting_hours] }}</strong></li>{% endif %}
+      {# — history / symptoms — #}
       {% if enrichment.family_history is not none %}<li><span>Family history</span><strong>{{ 'Yes (early CVD)' if enrichment.family_history else 'No' }}</strong></li>{% endif %}
+      {% if enrichment.prior_event is not none %}<li><span>Prior MI / stroke / TIA</span><strong>{{ 'Yes' if enrichment.prior_event else 'No' }}</strong></li>{% endif %}
+      {% if enrichment.chest_pain is not none %}<li><span>Chest pain on exertion</span><strong>{{ 'Yes' if enrichment.chest_pain else 'No' }}</strong></li>{% endif %}
+      {# — wellbeing — #}
       {% if enrichment.stress_level %}<li><span>Stress</span><strong>{{ enrichment.stress_level|capitalize }}</strong></li>{% endif %}
+      {% if enrichment.mental_health is not none %}<li><span>Anxiety / depression</span><strong>{{ 'Yes' if enrichment.mental_health else 'No' }}</strong></li>{% endif %}
+      {# — conditions — #}
       {% set _conds = enrichment.conditions or [] %}
       {% if _conds and _conds != ['none'] %}<li><span>Diagnoses</span><strong>{{ _conds|reject('equalto', 'none')|join(', ') }}</strong></li>{% endif %}
     </ul>
